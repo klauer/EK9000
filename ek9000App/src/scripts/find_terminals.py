@@ -155,6 +155,8 @@ class SlaveMappings:
 class TerminalInfo:
     name: str
     revision: str
+    description: str
+    url: Optional[str]
     # element: lxml.etree.Element
     rxpdo: List[PdoInfo]
     txpdo: List[PdoInfo]
@@ -168,7 +170,7 @@ class TerminalInfo:
         raise ValueError("Unknown index")
 
     @classmethod
-    def from_xml(cls, obj: lxml.etree.Element) -> TerminalInfo:
+    def from_xml(cls, obj: lxml.etree.Element, language_id: int = 1033) -> TerminalInfo:
         txpdos = [PdoInfo.from_xml(pdo) for pdo in obj.xpath("TxPdo")]
         rxpdos = [PdoInfo.from_xml(pdo) for pdo in obj.xpath("RxPdo")]
         mappings = [
@@ -185,6 +187,8 @@ class TerminalInfo:
         return TerminalInfo(
             name=obj.xpath("Type")[0].text,
             revision=obj.xpath("Type")[0].attrib.get("RevisionNo", ""),
+            description=obj.xpath(f"Name[@LcId={language_id}]")[0].text,
+            url=_single_text_or_none(obj, f"URL[@LcId={language_id}]"),
             txpdo=txpdos,
             rxpdo=rxpdos,
             mappings=mappings,
